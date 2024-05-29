@@ -16,9 +16,9 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="1" column="0">
-     <widget class="QLabel" name="nodeLabel">
+     <widget class="QLabel" name="connectionLabel">
       <property name="text">
-       <string> Connection state</string>
+       <string> Connection:</string>
       </property>
      </widget>
     </item>
@@ -106,21 +106,8 @@
        <string> Detected devices</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="1" column="0">
-        <widget class="QListView" name="deviceListView"/>
-       </item>
        <item row="0" column="0">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
+        <widget class="QListView" name="deviceListView"/>
        </item>
       </layout>
      </widget>
