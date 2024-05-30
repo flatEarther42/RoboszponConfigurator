@@ -50,8 +50,8 @@ def decode_message(frame_id, data):
         return {
             "node_id": node_id,
             "message_id": message_id,
-            "position": position,
-            "velocity": velocity,
+            "position": bits_to_float(position),
+            "velocity": bits_to_float(velocity),
         }
     if message_id == MSG_MOTOR_REPORT:
         current = (data >> 32) & 0xFFFFFFFF
@@ -59,8 +59,8 @@ def decode_message(frame_id, data):
         return {
             "node_id": node_id,
             "message_id": message_id,
-            "current": current,
-            "duty": duty,
+            "current": bits_to_float(current),
+            "duty": bits_to_float(duty),
         }
     return {"node_id": node_id, "message_id": message_id, "data": data}
 
@@ -79,7 +79,12 @@ def disarm(canbus, node_id):
 
 def float_to_bits(value):
     value_bits = struct.pack("f", value)
-    return struct.unpack("i", value_bits)[0]
+    return struct.unpack("I", value_bits)[0]
+
+
+def bits_to_float(value):
+    value_bits = struct.pack("I", value)
+    return struct.unpack("f", value_bits)[0]
 
 
 def send_motor_command(canbus, node_id, motor_command_type, command):
@@ -103,3 +108,11 @@ def send_position_command(canbus, node_id, command):
 
 def emergency_stop(canbus):
     send_can_frame(canbus, 0x001, 0)
+
+
+# f = 0.5
+# print(f)
+# i = float_to_bits(f)
+# print(hex(i))
+# ff = bits_to_float(i)
+# print(ff)
