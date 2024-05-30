@@ -55,11 +55,16 @@ class MyLittleRoboszponSuite(QMainWindow):
         self.deviceListView.setModel(self.deviceList)
         self.deviceListView.clicked.connect(self.deviceListClicked)
 
+        self.parameterComboBox.addItems(roboszpon_lib.ROBOSZPON_PARAMETERS.keys())
+        self.parameterComboBox.currentTextChanged.connect(self.parameterComboBoxChanged)
+        self.oldParameterValue = self.parameterSpinBox.value()
+
         self.armButton.clicked.connect(self.armButtonClicked)
         self.dutyButton.clicked.connect(self.dutyButtonClicked)
         self.velocityButton.clicked.connect(self.velocityButtonClicked)
         self.positionButton.clicked.connect(self.positionButtonClicked)
         self.stopAllButton.clicked.connect(self.stopAllButtonClicked)
+        self.parameterUpdateButton.clicked.connect(self.updateParameterButtonClicked)
 
         self.init_plot()
 
@@ -69,7 +74,7 @@ class MyLittleRoboszponSuite(QMainWindow):
 
         try:
             self.canbus = can.interface.Bus("can0", interface="socketcan")
-            can.Notifier(self.canbus, [self])
+            self.can_notifier = can.Notifier(self.canbus, [self])
         except Exception as e:
             print(f"Couldn't start can: {e}")
 
@@ -151,9 +156,10 @@ class MyLittleRoboszponSuite(QMainWindow):
         self.roboszpon = node_id
         self.armed = self.devices[node_id].mode != roboszpon_lib.ROBOSZPON_MODE_STOPPED
         if self.armed:
-            self.armButton.setText("Disarm")
+            self.arm()
         else:
-            self.armButton.setText("Arm")
+            self.disarm()
+            self.updateParameterValue(self.parameterComboBox.currentText())
         self.connectionLabel.setText("Connection: OK")
         self.stateLabel.setText(
             f"Operation state: {roboszpon_lib.ROBOSZPON_MODES[self.devices[self.roboszpon].mode]}"
@@ -163,6 +169,16 @@ class MyLittleRoboszponSuite(QMainWindow):
         )
         print(f"Selected roboszpon: {node_id}")
 
+    def arm(self):
+        self.armButton.setText("Disarm")
+        self.parameterConfigurationGroup.setEnabled(False)
+        self.setpointGroup.setEnabled(True)
+
+    def disarm(self):
+        self.armButton.setText("Arm")
+        self.parameterConfigurationGroup.setEnabled(True)
+        self.setpointGroup.setEnabled(False)
+
     def deviceListClicked(self, index: QModelIndex):
         self.selectDevice(self.deviceIds[index.row()])
 
@@ -170,15 +186,15 @@ class MyLittleRoboszponSuite(QMainWindow):
         self.armed = not self.armed
         if self.armed:
             roboszpon_lib.disarm(self.canbus, self.roboszpon)
-            self.armButton.setText("Arm")
+            self.disarm()
         else:
             roboszpon_lib.arm(self.canbus, self.roboszpon)
-            self.armButton.setText("Disarm")
+            self.arm()
 
     def stopAllButtonClicked(self):
         roboszpon_lib.emergency_stop(self.canbus)
         self.armed = False
-        self.armButton.setText("Disarm")
+        self.disarm()
 
     def dutyButtonClicked(self):
         roboszpon_lib.send_duty_command(
@@ -195,9 +211,48 @@ class MyLittleRoboszponSuite(QMainWindow):
             self.canbus, self.roboszpon, self.positionSpinBox.value()
         )
 
+    def parameterComboBoxChanged(self, text):
+        self.updateParameterValue(text)
+
+    def updateParameterValue(self, parameter_name):
+        def callback(value):
+            self.parameterSpinBox.setValue(value)
+            self.oldParameterValue = value
+
+        if self.roboszpon is None:
+            return
+        if self.devices[self.roboszpon].mode != roboszpon_lib.ROBOSZPON_MODE_STOPPED:
+            print("Can't configure runnig roboszpon")
+            return
+        roboszpon_lib.read_parameter_callback(
+            self.canbus,
+            self.can_notifier,
+            self.devices[self.roboszpon].node_id,
+            roboszpon_lib.ROBOSZPON_PARAMETERS[parameter_name],
+            callback,
+        )
+
+    def updateParameterButtonClicked(self):
+        parameter_name = self.parameterComboBox.currentText()
+        parameter_id = roboszpon_lib.ROBOSZPON_PARAMETERS[parameter_name]
+        value = self.parameterSpinBox.value()
+        if self.roboszpon is None:
+            self.parameterSpinBox.setValue(self.oldParameterValue)
+            return
+        if self.devices[self.roboszpon].mode != roboszpon_lib.ROBOSZPON_MODE_STOPPED:
+            # Maybe just disable the button...
+            print("Can't configure running roboszpon")
+            self.parameterSpinBox.setValue(self.oldParameterValue)
+            return
+        print(f"Sending: {parameter_name}={value}")
+        roboszpon_lib.send_parameter_write(
+            self.canbus, self.roboszpon, parameter_id, value
+        )
+        self.updateParameterValue(parameter_name)
+
     def init_plot(self):
         self.plot = pg.PlotWidget()
-        self.plot.addLegend(offset=-1)
+        self.plot.addLegend(offset=(-1, 1))
         layout = QVBoxLayout(self.plotView)
         layout.addWidget(self.plot)
         self.duty_curve = self.plot.plot([], [], pen="#7E2F8E", name="Duty")

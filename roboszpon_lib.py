@@ -6,6 +6,9 @@ MSG_ACTION_REQUEST = 0x02
 MSG_STATUS_REPORT = 0x03
 MSG_AXIS_REPORT = 0x04
 MSG_MOTOR_REPORT = 0x05
+MSG_PARAMETER_WRITE = 0x06
+MSG_PARAMETER_READ = 0x07
+MSG_PARAMETER_RESPONSE = 0x08
 
 ACTION_ARM = 0x00
 ACTION_DISARM = 0x01
@@ -14,6 +17,46 @@ ROBOSZPON_MODE_STOPPED = 0x00
 ROBOSZPON_MODE_RUNNING = 0x01
 ROBOSZPON_MODE_ERROR = 0x02
 ROBOSZPON_MODES = {0: "STOPPED", 1: "RUNNING", 2: "ERROR"}
+ROBOSZPON_PARAMETERS = {
+    "COMMAND_TIMEOUT": 0x00,
+    "ENCODER_OFFSET": 0x01,
+    "PPID_Kp": 0x04,
+    "PPID_Ki": 0x05,
+    "PPID_Kd": 0x06,
+    "PPID_Kaw": 0x07,
+    "PPID_deadzone": 0x08,
+    "PPID_Umax": 0x09,
+    "PPID_dUmax": 0x0A,
+    "VPID_Kp": 0x0C,
+    "VPID_Ki": 0x0D,
+    "VPID_Kd": 0x0E,
+    "VPID_Kaw": 0x0F,
+    "VPID_deadzone": 0x10,
+    "VPID_Umax": 0x11,
+    "VPID_dUmax": 0x12,
+    "CPID_Kp": 0x14,
+    "CPID_Ki": 0x15,
+    "CPID_Kd": 0x16,
+    "CPID_Kaw": 0x17,
+    "CPID_deadzone": 0x18,
+    "CPID_Umax": 0x19,
+    "CPID_dUmax": 0x1A,
+    "IIR_VALUE_CURMEAS": 0x1C,
+    "IIR_VALUE_VELMEAS": 0x1D,
+    "IIR_VALUE_PPIDU": 0x1E,
+    "IIR_VALUE_VPIDU": 0x1F,
+    "IIR_VALUE_CPIDU": 0x20,
+    "VELFeedForward_GAIN": 0x21,
+    "ACCFeedForward_GAIN": 0x22,
+    "MIN_POSITION": 0x23,
+    "MAX_POSITION": 0x24,
+    "MIN_VELOCITY": 0x25,
+    "MAX_VELOCITY": 0x26,
+    "MIN_CURRENT": 0x27,
+    "MAX_CURRENT": 0x28,
+    "MIN_DUTY": 0x29,
+    "MAX_DUTY": 0x2F,
+}
 
 
 def send_can_frame(canbus, frame_id, data):
@@ -61,6 +104,15 @@ def decode_message(frame_id, data):
             "message_id": message_id,
             "current": bits_to_float(current),
             "duty": bits_to_float(duty),
+        }
+    if message_id == MSG_PARAMETER_RESPONSE:
+        parameter_id = (data >> 56) & 0xFF
+        value = (data >> 24) & 0xFFFFFFFF
+        return {
+            "node_id": node_id,
+            "message_id": message_id,
+            "parameter_id": parameter_id,
+            "value": bits_to_float(value),
         }
     return {"node_id": node_id, "message_id": message_id, "data": data}
 
@@ -110,9 +162,30 @@ def emergency_stop(canbus):
     send_can_frame(canbus, 0x001, 0)
 
 
-# f = 0.5
-# print(f)
-# i = float_to_bits(f)
-# print(hex(i))
-# ff = bits_to_float(i)
-# print(ff)
+def send_parameter_write(canbus, node_id, parameter_id, value):
+    data = ((parameter_id & 0xFF) << 56) + ((float_to_bits(value) & 0xFFFFFFFF) << 24)
+    send_can_frame(canbus, build_frame_id(node_id, MSG_PARAMETER_WRITE), data)
+
+
+def send_parameter_read(canbus, node_id, parameter_id):
+    send_can_frame(canbus, build_frame_id(node_id, MSG_PARAMETER_READ), parameter_id)
+
+
+import time
+
+
+def read_parameter_callback(canbus, can_notifier, node_id, parameter_id, callback):
+    def on_message_received(message: can.Message):
+        decoded_message = decode_message(
+            message.arbitration_id, int.from_bytes(message.data, byteorder="big")
+        )
+        if (
+            decoded_message["node_id"] == node_id
+            and decoded_message["message_id"] == MSG_PARAMETER_RESPONSE
+            and decoded_message["parameter_id"] == parameter_id
+        ):
+            callback(decoded_message["value"])
+            can_notifier.remove_listener(on_message_received)
+
+    can_notifier.add_listener(on_message_received)
+    send_parameter_read(canbus, node_id, parameter_id)

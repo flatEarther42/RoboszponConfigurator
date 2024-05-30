@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="3" rowspan="10">
+    <item row="0" column="3" rowspan="12">
      <widget class="QWidget" name="plotView" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -25,11 +25,11 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="1" rowspan="4">
+    <item row="4" column="1" rowspan="4">
      <widget class="QGroupBox" name="groupBox_3">
       <property name="minimumSize">
        <size>
-        <width>240</width>
+        <width>180</width>
         <height>0</height>
        </size>
       </property>
@@ -92,7 +92,7 @@
       </layout>
      </widget>
     </item>
-    <item row="3" column="0">
+    <item row="4" column="0">
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -105,7 +105,7 @@
       </property>
      </spacer>
     </item>
-    <item row="7" column="1">
+    <item row="8" column="1">
      <widget class="QPushButton" name="armButton">
       <property name="text">
        <string>Arm</string>
@@ -117,47 +117,6 @@
       <property name="text">
        <string>Logo</string>
       </property>
-     </widget>
-    </item>
-    <item row="3" column="2" rowspan="2">
-     <widget class="QGroupBox" name="groupBox_6">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="title">
-       <string>Parameter configuration</string>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QComboBox" name="parameterComboBox"/>
-       </item>
-       <item>
-        <widget class="QDoubleSpinBox" name="parameterSpinBox">
-         <property name="readOnly">
-          <bool>false</bool>
-         </property>
-         <property name="decimals">
-          <number>4</number>
-         </property>
-         <property name="minimum">
-          <double>-2137.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>2137.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="parameterUpdateButton">
-         <property name="text">
-          <string>Update</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </widget>
     </item>
     <item row="2" column="1" colspan="2">
@@ -179,14 +138,14 @@
       </layout>
      </widget>
     </item>
-    <item row="8" column="1">
+    <item row="9" column="1">
      <widget class="QPushButton" name="stopAllButton">
       <property name="text">
        <string>Stop all</string>
       </property>
      </widget>
     </item>
-    <item row="9" column="1">
+    <item row="11" column="1">
      <spacer name="verticalSpacer_3">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -215,16 +174,25 @@
       </property>
      </spacer>
     </item>
-    <item row="5" column="2" rowspan="4">
-     <widget class="QTabWidget" name="tabWidget">
+    <item row="4" column="2" rowspan="6">
+     <widget class="QTabWidget" name="setpointGroup">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="minimumSize">
+       <size>
+        <width>295</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_4">
        <attribute name="title">
@@ -353,6 +321,50 @@
         </layout>
        </widget>
       </widget>
+     </widget>
+    </item>
+    <item row="10" column="1" colspan="2">
+     <widget class="QGroupBox" name="parameterConfigurationGroup">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>Parameter configuration</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QComboBox" name="parameterComboBox"/>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="parameterSpinBox">
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+         <property name="decimals">
+          <number>4</number>
+         </property>
+         <property name="minimum">
+          <double>-2137.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>2137.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="parameterUpdateButton">
+         <property name="text">
+          <string>Update</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
