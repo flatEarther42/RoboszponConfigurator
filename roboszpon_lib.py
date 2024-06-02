@@ -12,6 +12,9 @@ MSG_PARAMETER_RESPONSE = 0x08
 
 ACTION_ARM = 0x00
 ACTION_DISARM = 0x01
+ACTION_COMMIT_CONFIG = 0x02
+ACTION_RESTORE_CONFIG = 0x03
+ACTION_SET_FACTORY_CONFIG = 0x04
 
 ROBOSZPON_MODE_STOPPED = 0x00
 ROBOSZPON_MODE_RUNNING = 0x01
@@ -57,6 +60,10 @@ ROBOSZPON_PARAMETERS = {
     "MAX_CURRENT": 0x28,
     "MIN_DUTY": 0x29,
     "MAX_DUTY": 0x2F,
+    "OVERHEAT_TEMPERATURE": 0x50,
+    "NO_OVERHEAT_TEMPERATURE": 0x51,
+    "PARAM_INVERT_AXIS": 0x52,
+    "PARAM_INVERT_ENCODER": 0x53,
 }
 
 
@@ -81,11 +88,14 @@ def decode_message(frame_id, data):
     message_id = frame_id & 0b111111
     if message_id == MSG_STATUS_REPORT:
         mode = (data >> 62) & 0b11
-        flags = data & 0x3FFFFFFFFFFFFFFF
+        flags = data & 0xFFFF
+        temperature = (data >> 24) & 0xFFFFFFFF
+        temperature *= 0.1
         return {
             "node_id": node_id,
             "message_id": message_id,
             "mode": mode,
+            "temperature": temperature,
             "flags": flags,
         }
     if message_id == MSG_AXIS_REPORT:

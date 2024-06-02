@@ -7,11 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>1384</width>
-    <height>567</height>
+    <height>592</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>MLRSv2</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>assets/roboszpon-black.png</normaloff>assets/roboszpon-black.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -59,7 +63,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string> </string>
+          <string/>
          </property>
         </widget>
        </item>
@@ -383,12 +387,31 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionCommit_configuration"/>
+    <addaction name="actionRestore_configuration"/>
+    <addaction name="separator"/>
+    <addaction name="actionFactory_settings"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
   <action name="actionConnect_roboszpon">
    <property name="text">
     <string>Connect roboszpon</string>
+   </property>
+  </action>
+  <action name="actionCommit_configuration">
+   <property name="text">
+    <string>Commit configuration</string>
+   </property>
+  </action>
+  <action name="actionRestore_configuration">
+   <property name="text">
+    <string>Restore configuration</string>
+   </property>
+  </action>
+  <action name="actionFactory_settings">
+   <property name="text">
+    <string>Factory configuration</string>
    </property>
   </action>
  </widget>

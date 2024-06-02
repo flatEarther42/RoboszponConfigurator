@@ -5,11 +5,11 @@ from PyQt5.QtGui import QPixmap
 from PyQt5 import uic
 
 import roboszpon_lib
-import can, time
+import can, time, os
 import pyqtgraph as pg
 
 CONNECTION_TIMEOUT = 1.0
-MAX_PLOT_SAMPLES = 2137
+MAX_PLOT_SAMPLES = 10000
 
 
 class Signal:
@@ -32,6 +32,7 @@ class Roboszpon:
         self.current = Signal()
         self.velocity = Signal()
         self.position = Signal()
+        self.temperature = Signal()
 
     node_id: int
     mode: str
@@ -42,8 +43,9 @@ class Roboszpon:
 class MyLittleRoboszponSuite(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi("app.ui", self)
-        self.logoLabel.setPixmap(QPixmap("assets/text1.png"))
+        path = os.path.dirname(os.path.realpath(__file__))
+        uic.loadUi(os.path.join(path, "app.ui"), self)
+        self.logoLabel.setPixmap(QPixmap(os.path.join(path, "assets/text1.png")))
         self.startTimestamp = time.time()
 
         self.roboszpon = None
@@ -65,6 +67,9 @@ class MyLittleRoboszponSuite(QMainWindow):
         self.positionButton.clicked.connect(self.positionButtonClicked)
         self.stopAllButton.clicked.connect(self.stopAllButtonClicked)
         self.parameterUpdateButton.clicked.connect(self.updateParameterButtonClicked)
+        self.actionCommit_configuration.triggered.connect(self.commitConfiguration)
+        self.actionRestore_configuration.triggered.connect(self.restoreConfiguration)
+        self.actionFactory_settings.triggered.connect(self.factoryConfiguration)
 
         self.init_plot()
 
@@ -109,13 +114,16 @@ class MyLittleRoboszponSuite(QMainWindow):
             roboszpon.mode = msg["mode"]
             roboszpon.flags = msg["flags"]
             roboszpon.timestamp = message.timestamp
+            roboszpon.temperature.update(
+                msg["temperature"], message.timestamp - self.startTimestamp
+            )
             if msg["node_id"] == self.roboszpon:
                 self.connectionLabel.setText("Connection: OK")
                 self.stateLabel.setText(
                     f"Operation state: {roboszpon_lib.ROBOSZPON_MODES[self.devices[self.roboszpon].mode]}"
                 )
                 self.flagsLabel.setText(
-                    f"Flags: {(bin(self.devices[self.roboszpon].flags + (1 << 17)))[3:]}"
+                    f"Flags: {(bin(self.devices[self.roboszpon].flags + (1 << 17)))[4:]}"
                 )
         if msg["message_id"] == roboszpon_lib.MSG_AXIS_REPORT:
             node_id = msg["node_id"]
@@ -250,12 +258,32 @@ class MyLittleRoboszponSuite(QMainWindow):
         )
         self.updateParameterValue(parameter_name)
 
+    def commitConfiguration(self):
+        roboszpon_lib.send_action_request(
+            self.canbus, self.roboszpon, roboszpon_lib.ACTION_COMMIT_CONFIG
+        )
+
+    def restoreConfiguration(self):
+        roboszpon_lib.send_action_request(
+            self.canbus, self.roboszpon, roboszpon_lib.ACTION_RESTORE_CONFIG
+        )
+        self.updateParameterValue(self.parameterComboBox.currentText())
+
+    def factoryConfiguration(self):
+        roboszpon_lib.send_action_request(
+            self.canbus, self.roboszpon, roboszpon_lib.ACTION_SET_FACTORY_CONFIG
+        )
+        self.updateParameterValue(self.parameterComboBox.currentText())
+
     def init_plot(self):
         self.plot = pg.PlotWidget()
         self.plot.addLegend(offset=(-1, 1))
         layout = QVBoxLayout(self.plotView)
         layout.addWidget(self.plot)
-        self.duty_curve = self.plot.plot([], [], pen="#7E2F8E", name="Duty")
+        self.temperature_curve = self.plot.plot(
+            [], [], pen="#7E2F8E", name="Temperature"
+        )
+        self.duty_curve = self.plot.plot([], [], pen="#77AC30", name="Duty")
         self.current_curve = self.plot.plot([], [], pen="#EDB120", name="Current")
         self.velocity_curve = self.plot.plot([], [], pen="#D95319", name="Velocity")
         self.position_curve = self.plot.plot([], [], pen="#0072BD", name="Position")
@@ -269,6 +297,8 @@ class MyLittleRoboszponSuite(QMainWindow):
         self.current_curve.setData(signal.timestamps, signal.values)
         signal = self.devices[self.roboszpon].duty
         self.duty_curve.setData(signal.timestamps, signal.values)
+        signal = self.devices[self.roboszpon].temperature
+        self.temperature_curve.setData(signal.timestamps, signal.values)
 
 
 if __name__ == "__main__":
