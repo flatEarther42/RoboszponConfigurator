@@ -387,16 +387,40 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionCommit_configuratio"/>
+    <addaction name="actionRestore_configuratio"/>
+    <addaction name="actionFactory_setting"/>
+   </widget>
+   <widget class="QMenu" name="menuConfiguration">
+    <property name="title">
+     <string>Flash</string>
+    </property>
     <addaction name="actionCommit_configuration"/>
     <addaction name="actionRestore_configuration"/>
     <addaction name="separator"/>
     <addaction name="actionFactory_settings"/>
    </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuConfiguration"/>
   </widget>
   <action name="actionConnect_roboszpon">
    <property name="text">
     <string>Connect roboszpon</string>
+   </property>
+  </action>
+  <action name="actionCommit_configuratio">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionRestore_configuratio">
+   <property name="text">
+    <string>Save as...</string>
+   </property>
+  </action>
+  <action name="actionFactory_setting">
+   <property name="text">
+    <string>Open...</string>
    </property>
   </action>
   <action name="actionCommit_configuration">
@@ -411,7 +435,7 @@
   </action>
   <action name="actionFactory_settings">
    <property name="text">
-    <string>Factory configuration</string>
+    <string>Restore factory values</string>
    </property>
   </action>
  </widget>
