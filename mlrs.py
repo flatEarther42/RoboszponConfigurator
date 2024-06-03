@@ -70,6 +70,7 @@ class MyLittleRoboszponSuite(QMainWindow):
         self.actionCommit_configuration.triggered.connect(self.commitConfiguration)
         self.actionRestore_configuration.triggered.connect(self.restoreConfiguration)
         self.actionFactory_settings.triggered.connect(self.factoryConfiguration)
+        self.actionSoftware_reset.triggered.connect(self.softwareReset)
 
         self.init_plot()
 
@@ -274,6 +275,11 @@ class MyLittleRoboszponSuite(QMainWindow):
             self.canbus, self.roboszpon, roboszpon_lib.ACTION_SET_FACTORY_CONFIG
         )
         self.updateParameterValue(self.parameterComboBox.currentText())
+
+    def softwareReset(self):
+        roboszpon_lib.send_action_request(
+            self.canbus, self.roboszpon, roboszpon_lib.ACTION_SOFTWARE_RESET
+        )
 
     def init_plot(self):
         self.plot = pg.PlotWidget()

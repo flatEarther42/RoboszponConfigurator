@@ -400,8 +400,15 @@
     <addaction name="separator"/>
     <addaction name="actionFactory_settings"/>
    </widget>
+   <widget class="QMenu" name="menuDevice">
+    <property name="title">
+     <string>Device</string>
+    </property>
+    <addaction name="actionSoftware_reset"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuConfiguration"/>
+   <addaction name="menuDevice"/>
   </widget>
   <action name="actionConnect_roboszpon">
    <property name="text">
@@ -436,6 +443,11 @@
   <action name="actionFactory_settings">
    <property name="text">
     <string>Restore factory values</string>
+   </property>
+  </action>
+  <action name="actionSoftware_reset">
+   <property name="text">
+    <string>Software reset</string>
    </property>
   </action>
  </widget>

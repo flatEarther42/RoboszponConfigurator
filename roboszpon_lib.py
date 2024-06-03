@@ -15,6 +15,7 @@ ACTION_DISARM = 0x01
 ACTION_COMMIT_CONFIG = 0x02
 ACTION_RESTORE_CONFIG = 0x03
 ACTION_SET_FACTORY_CONFIG = 0x04
+ACTION_SOFTWARE_RESET = 0x05
 
 ROBOSZPON_MODE_STOPPED = 0x00
 ROBOSZPON_MODE_RUNNING = 0x01
@@ -27,31 +28,23 @@ ROBOSZPON_PARAMETERS = {
     "PPID_Kp": 0x04,
     "PPID_Ki": 0x05,
     "PPID_Kd": 0x06,
-    "PPID_Kaw": 0x07,
     "PPID_deadzone": 0x08,
-    "PPID_Umax": 0x09,
     "PPID_dUmax": 0x0A,
     "VPID_Kp": 0x0C,
     "VPID_Ki": 0x0D,
     "VPID_Kd": 0x0E,
-    "VPID_Kaw": 0x0F,
     "VPID_deadzone": 0x10,
-    "VPID_Umax": 0x11,
     "VPID_dUmax": 0x12,
     "CPID_Kp": 0x14,
     "CPID_Ki": 0x15,
     "CPID_Kd": 0x16,
-    "CPID_Kaw": 0x17,
     "CPID_deadzone": 0x18,
-    "CPID_Umax": 0x19,
     "CPID_dUmax": 0x1A,
     "IIR_VALUE_CURMEAS": 0x1C,
     "IIR_VALUE_VELMEAS": 0x1D,
     "IIR_VALUE_PPIDU": 0x1E,
     "IIR_VALUE_VPIDU": 0x1F,
     "IIR_VALUE_CPIDU": 0x20,
-    "VELFeedForward_GAIN": 0x21,
-    "ACCFeedForward_GAIN": 0x22,
     "MIN_POSITION": 0x23,
     "MAX_POSITION": 0x24,
     "MIN_VELOCITY": 0x25,
@@ -64,6 +57,7 @@ ROBOSZPON_PARAMETERS = {
     "NO_OVERHEAT_TEMPERATURE": 0x51,
     "PARAM_INVERT_AXIS": 0x52,
     "PARAM_INVERT_ENCODER": 0x53,
+    "PARAM_ENCODER_FILTER_WINDOW": 0x54,
 }
 
 
