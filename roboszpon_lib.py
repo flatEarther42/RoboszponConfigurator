@@ -25,6 +25,7 @@ ROBOSZPON_PARAMETERS = {
     "COMMAND_TIMEOUT": 0x00,
     "ENCODER_ZERO": 0x01,
     "AXIS_OFFSET": 0x02,
+    "REPORT_RATE": 0x03,
     "PPID_Kp": 0x04,
     "PPID_Ki": 0x05,
     "PPID_Kd": 0x06,
