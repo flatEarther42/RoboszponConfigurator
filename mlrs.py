@@ -1,11 +1,11 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QVBoxLayout, QFileDialog
 from PyQt5.QtCore import QStringListModel, QModelIndex, QTimer
 from PyQt5.QtGui import QPixmap
 from PyQt5 import uic
 
 import roboszpon_lib
-import can, time, os
+import can, time, os, yaml
 import pyqtgraph as pg
 
 CONNECTION_TIMEOUT = 1.0
@@ -50,6 +50,7 @@ class MyLittleRoboszponSuite(QMainWindow):
 
         self.roboszpon = None
         self.armed = False
+        self.current_file_path = None
 
         self.deviceList = QStringListModel()
         self.deviceIds = []
@@ -67,6 +68,9 @@ class MyLittleRoboszponSuite(QMainWindow):
         self.positionButton.clicked.connect(self.positionButtonClicked)
         self.stopAllButton.clicked.connect(self.stopAllButtonClicked)
         self.parameterUpdateButton.clicked.connect(self.updateParameterButtonClicked)
+        self.actionCommit_configuratio.triggered.connect(self.saveButtonClicked)
+        self.actionRestore_configuratio.triggered.connect(self.saveAsButtonClicked)
+        self.actionFactory_setting.triggered.connect(self.openButtonClicked)
         self.actionCommit_configuration.triggered.connect(self.commitConfiguration)
         self.actionRestore_configuration.triggered.connect(self.restoreConfiguration)
         self.actionFactory_settings.triggered.connect(self.factoryConfiguration)
@@ -219,6 +223,56 @@ class MyLittleRoboszponSuite(QMainWindow):
         roboszpon_lib.send_position_command(
             self.canbus, self.roboszpon, self.positionSpinBox.value()
         )
+    
+    def saveButtonClicked(self):
+        if self.current_file_path:
+            self.saveParameters(self.current_file_path)
+        else:
+            self.saveAsButtonClicked()
+    
+    def saveAsButtonClicked(self):
+        path, _ = QFileDialog.getSaveFileName(self, "Save As...", "","YAML Files (*.yaml)")
+        if path:
+            self.current_file_path = path
+            self.saveParameters(path)
+    
+    def openButtonClicked(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Open File...", "","YAML Files (*.yaml)")
+        if path:
+            self.loadParameters(path)
+
+    def saveParametersToFile(self,parameters,path):
+        with open(path,"w") as file:
+            yaml.dump(parameters, file)
+
+    def loadParametersFromFile(self, path):
+        with open(path,"r") as file:
+            loaded_param =  yaml.safe_load(file)
+        return loaded_param
+    
+    def saveParameters(self, path):
+        parameters = {}
+        for param_name in roboszpon_lib.ROBOSZPON_PARAMETERS.keys():
+            response = roboszpon_lib.send_parameter_read(self.canbus, self.roboszpon, param_name)
+            parameters[param_name] = response["value"]
+        self.saveParametersToFile(parameters, path)
+        self.showMessage("","Configuration successfully saved!")
+
+    def loadParameters(self, path):
+        parameters = self.loadParametersFromFile(path)
+        self.current_file_path = path
+        for param_name, value in parameters.items():
+            if param_name in roboszpon_lib.ROBOSZPON_PARAMETERS.keys():
+                roboszpon_lib.send_parameter_write(self.canbus, self.roboszpon, param_name, value)
+            else:
+                self.showWarning("Unknown parameter", f"Unknown parameter in opened file:\n{param_name}\nTry again.")
+                return
+
+    def showWarning(self, title, message):
+        QMessageBox.warning(self, title, message, QMessageBox.Ok)
+
+    def showMessage(self, title, message):
+        QMessageBox.information(self,title,message, QMessageBox.Ok)
 
     def parameterComboBoxChanged(self, text):
         self.updateParameterValue(text)
